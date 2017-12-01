@@ -1,5 +1,6 @@
 *.class
 *.log
+*.DS_Store
 
 # sbt specific
 .cache
@@ -17,3 +18,4 @@ project/target
 .scala_dependencies
 .worksheet
 /bin/
+.idea/
