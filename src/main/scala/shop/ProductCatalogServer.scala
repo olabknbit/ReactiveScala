@@ -43,7 +43,7 @@ object JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
 
 object ProductCatalogServer extends App{
   import JsonSupport._
-  implicit val system = ActorSystem("product_catalog_system", ConfigFactory.load("payment_service_server.conf"))
+  implicit val system = ActorSystem("product_catalog_system", ConfigFactory.load("product_catalog_server.conf"))
   implicit val materializer = ActorMaterializer()
   // needed for the future flatMap/onComplete in the end
   implicit val executionContext = system.dispatcher
@@ -51,45 +51,16 @@ object ProductCatalogServer extends App{
   val actorRef = system.actorOf(Props(new ProductCatalogManagerActor(ProductCatalog.ready)))
   val route =
     path("search") {
-      get {
-        print("elo")
-        complete("elo")
-      }
       put {
         decodeRequest {
           entity(as[Words]) { (words) ⇒
             val result = ToResponseMarshallable((actorRef ? SearchForItems(words.items)).mapTo[SearchResults])
-            //ToResponseMarshaller[Future[CatalogSearchResults]] = implicitly[ToResponseMarshaller[Future[CatalogSearchResults]]]
             println(result)
             complete(result)
-//
-//              then
-//
-//
-//              implicitly[ToResponseMarshaller[PimpedResult[(StatusCode, Result[StatusDTO])]]
-//
-//
-//                then
-//
-//                implicitly[ToEntityMarshaller[Result[StatusDTO]]] // required by APICustomMarshallers.statusMarshaller
-//
-//                or just
-//
-//                statusMarshaller[Result[StatusDTO]]]
-            //sendResponse(result)
           }
         }
       }
     }
-//  def sendResponse[T](eventualResult: Future[T])(implicit marshaller: T ⇒ ToResponseMarshallable): Route = {
-//    onComplete(eventualResult) {
-//      case Success(result) ⇒
-//        complete(result)
-//      case Failure(e) ⇒
-//        complete(ToResponseMarshallable(InternalServerError -> s"Sorry, errorOccurred"))
-//    }
-//  }
-
 
   val bindingFuture = Http().bindAndHandle(route, "localhost", 8081)
 
@@ -98,7 +69,6 @@ object ProductCatalogServer extends App{
   bindingFuture
     .flatMap(_.unbind()) // trigger unbinding from the port
     .onComplete(_ => system.terminate()) // and shutdown when done
-
 }
 
 
