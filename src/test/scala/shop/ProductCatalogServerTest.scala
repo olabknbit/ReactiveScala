@@ -10,8 +10,7 @@ class ProductCatalogServerTest extends TestKit(ActorSystem("CartSystemSpec", Con
 
   "ProductCatalogServer" must {
 
-    "be have items from file" in {
-    }
+    // TODO write tests
 
   }
 
