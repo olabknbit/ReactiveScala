@@ -1,4 +1,4 @@
-package shop.product_catalog_server
+package product_catalog_server
 
 import java.net.URI
 
@@ -8,7 +8,7 @@ import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
 case class ProductCatalog(items: Map[URI, Item]) {
-  def splitCatalog(no_routees: Int) = {
+  def splitCatalog(no_routees: Int): List[Map[URI, Item]] = {
     var maps = items.splitAt(items.size / no_routees)
     var splitMaps = ListBuffer[Map[URI, Item]]()
     for (i <- 1 until no_routees) {
@@ -19,8 +19,9 @@ case class ProductCatalog(items: Map[URI, Item]) {
   }
 
   def searchForItems(words: List[String]): CatalogSearchResults = {
-    val ii = items.values.toList.sortWith(score(_, words) > score(_, words)).take(10)
+    val ii = items.values.toList.sortWith((item1, item2) => score(item1, words) > score(item2, words)).take(10)
     val scores = for (i <- ii) yield score(i, words)
+    print(ii)
     CatalogSearchResults(ii zip scores)
   }
 
