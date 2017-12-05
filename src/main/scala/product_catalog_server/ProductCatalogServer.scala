@@ -34,7 +34,6 @@ object ProductCatalogServer extends App {
         decodeRequest {
           entity(as[Words]) { (words) ⇒
             val result = ToResponseMarshallable((actorRef ? SearchForItems(words.items)).mapTo[SearchResults])
-            println(result)
             complete(result)
           }
         }

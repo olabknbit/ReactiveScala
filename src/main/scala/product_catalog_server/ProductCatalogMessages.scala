@@ -4,5 +4,5 @@ package product_catalog_server
 final case class SearchForItems(words: List[String])
 case class SearchResults(catalogSearchResults: CatalogSearchResults)
 final case class ProductCatalogJobFailed(reason: String, job: SearchForItems)
-case object BackendRegistration
+case object ClusterNodeRegistration
 //#messages

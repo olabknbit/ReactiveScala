@@ -3,6 +3,10 @@
 *.DS_Store
 *.iml
 
+# Results of simulation for load testing.
+results/
+lib/
+
 # sbt specific
 .cache
 .history

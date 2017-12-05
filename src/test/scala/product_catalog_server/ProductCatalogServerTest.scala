@@ -1,4 +1,4 @@
-package shop
+package product_catalog_server
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}

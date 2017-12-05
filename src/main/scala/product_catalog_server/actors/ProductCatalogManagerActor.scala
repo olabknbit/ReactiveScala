@@ -14,7 +14,7 @@ class ProductCatalogManagerActor(val system: ActorSystem, var productCatalog: Pr
 
   import ProductCatalogManagerActor._
 
-  val no_routees = 5
+  val no_routees = 10
   var details: JobDetails = _ // id, number of of finished workers
 
   var router: Router = {
@@ -66,9 +66,9 @@ class ProductCatalogManagerActor(val system: ActorSystem, var productCatalog: Pr
   }
 
   def register(member: Member): Unit =
-    if (member.hasRole("frontend")) {
+    if (member.hasRole("clusterManager")) {
       println("Registering member")
-      system.actorSelection(RootActorPath(member.address) / "user" / "frontend") ! BackendRegistration
+      system.actorSelection(RootActorPath(member.address) / "user" / "clusterManager") ! ClusterNodeRegistration
     }
 
   def mergeResults(results: CatalogSearchResults, results1: CatalogSearchResults): CatalogSearchResults = {
@@ -88,11 +88,11 @@ object ProductCatalogManagerActor {
     // Override the configuration of the port when specified as program argument
     val port = if (args.isEmpty) "0" else args(0)
     val config = ConfigFactory.parseString(s"akka.remote.netty.tcp.port=$port").
-      withFallback(ConfigFactory.parseString("akka.cluster.roles = [backend]")).
+      withFallback(ConfigFactory.parseString("akka.cluster.roles = [clusterNode]")).
       withFallback(ConfigFactory.load("cluster"))
 
     val system: ActorSystem = ActorSystem("ClusterSystem", config)
-    system.actorOf(Props(new ProductCatalogManagerActor(system, ProductCatalog.ready)), name = "backend")
+    system.actorOf(Props(new ProductCatalogManagerActor(system, ProductCatalog.ready)), name = "clusterNode")
     println("Product Catalog Manager Actor")
   }
 }

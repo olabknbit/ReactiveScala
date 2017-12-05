@@ -1,4 +1,4 @@
-package shop
+package product_catalog_server
 
 import java.net.URI
 
@@ -6,9 +6,8 @@ import akka.actor.{ActorSelection, ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import product_catalog_server.ProductCatalog
-import product_catalog_server.actors.ProductCatalogManagerActor.Get
 import product_catalog_server.actors.ProductCatalogManagerActor
+import product_catalog_server.actors.ProductCatalogManagerActor.Get
 
 class ProductCatalogManagerActorTest extends TestKit(ActorSystem("ClusterSystem", ConfigFactory.load("cluster.conf")))
   with WordSpecLike with Matchers with BeforeAndAfterAll with ImplicitSender {
