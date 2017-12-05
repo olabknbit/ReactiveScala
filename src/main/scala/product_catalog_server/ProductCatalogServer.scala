@@ -9,7 +9,7 @@ import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import product_catalog_server.actors.ProductCatalogStatsActor.Stats
-import product_catalog_server.actors.{ProductCatalogClusterManagerActor, ProductCatalogManagerActor, ProductCatalogStatsActor}
+import product_catalog_server.actors.{ProductCatalogClusterManagerActor, ProductCatalogLoggingActor, ProductCatalogManagerActor, ProductCatalogStatsActor}
 import product_catalog_server.utils.Words
 
 import scala.concurrent.duration._
@@ -53,6 +53,7 @@ object ProductCatalogServer extends App {
     }
   ProductCatalogManagerActor.main(Seq("2556", "0").toArray)
   ProductCatalogStatsActor.main(Seq("0", "stats").toArray)
+  ProductCatalogLoggingActor.main(Seq("0", "logs").toArray)
   startClusterNodes()
   val bindingFuture = Http().bindAndHandle(routes, "localhost", 8081)
   var id = 1

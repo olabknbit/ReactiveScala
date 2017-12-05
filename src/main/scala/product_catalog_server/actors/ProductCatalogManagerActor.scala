@@ -41,6 +41,7 @@ class ProductCatalogManagerActor(val id: String, val system: ActorSystem, var pr
   override def receive: PartialFunction[Any, Unit] = {
     case SearchForItems(words) =>
       mediator ! Publish("stats", id)
+      mediator ! Publish("logs", Log(id, words))
       details = JobDetails(0, CatalogSearchResults(List()), sender())
       router.route(ProductCatalogWorkerActor.SearchForItems(words), sender())
 

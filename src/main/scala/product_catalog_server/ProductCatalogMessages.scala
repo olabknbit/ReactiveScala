@@ -13,8 +13,10 @@ case class ClusterNodeRegistration(id: String)
 
 case class StatsActorRegistration(id: String)
 
-case class LoggerActorRegistration(id: String)
+case class LoggingActorRegistration(id: String)
 
 case class GetStats()
+
+case class Log(id: String, query: List[String])
 
 //#messages
