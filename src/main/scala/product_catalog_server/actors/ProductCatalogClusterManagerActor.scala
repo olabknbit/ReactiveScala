@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props, Terminated}
 import com.typesafe.config.ConfigFactory
-import product_catalog_server.{ClusterNodeRegistration, ProductCatalogJobFailed, SearchForItems}
+import product_catalog_server.{ClusterNodeRegistration, NumRoutees, ProductCatalogJobFailed, SearchForItems}
 
 import scala.language.postfixOps
 
@@ -20,6 +20,9 @@ class ProductCatalogClusterManagerActor extends Actor {
     case job: SearchForItems =>
       jobCounter += 1
       clusterNodes(jobCounter % clusterNodes.size) forward job
+
+    case NumRoutees =>
+      sender() ! clusterNodes.size
 
     case ClusterNodeRegistration if !clusterNodes.contains(sender()) =>
       context watch sender()
