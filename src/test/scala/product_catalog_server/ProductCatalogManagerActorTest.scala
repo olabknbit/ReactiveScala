@@ -15,7 +15,7 @@ class ProductCatalogManagerActorTest extends TestKit(ActorSystem("ClusterSystem"
   "ProductCatalogActor" must {
 
     "be have items from file" in {
-      val actorRef = TestActorRef[ProductCatalogManagerActor](Props(new ProductCatalogManagerActor(system, ProductCatalog.ready)))
+      val actorRef = TestActorRef[ProductCatalogManagerActor](Props(new ProductCatalogManagerActor("0", system, ProductCatalog.ready)))
       val actor = actorRef.underlyingActor
       actor.productCatalog.items(new URI("0000040822938")).name shouldBe "Fanta orange"
     }
@@ -29,7 +29,7 @@ class ProductCatalogManagerActorTest extends TestKit(ActorSystem("ClusterSystem"
     }
 
     "be the same as the one from remote selection" in {
-      val actorRef = system.actorOf(Props(new ProductCatalogManagerActor(system, ProductCatalog.ready)))
+      val actorRef = system.actorOf(Props(new ProductCatalogManagerActor("1", system, ProductCatalog.ready)))
       val actorSelection: ActorSelection = system.actorSelection("akka.tcp://actorSystem@127.0.0.1:2553/user/productCatalog")
 
       actorSelection ! Get shouldBe actorRef ! Get

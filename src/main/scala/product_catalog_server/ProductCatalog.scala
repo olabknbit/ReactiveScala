@@ -21,7 +21,6 @@ case class ProductCatalog(items: Map[URI, Item]) {
   def searchForItems(words: List[String]): CatalogSearchResults = {
     val ii = items.values.toList.sortWith((item1, item2) => score(item1, words) > score(item2, words)).take(10)
     val scores = for (i <- ii) yield score(i, words)
-    print(ii)
     CatalogSearchResults(ii zip scores)
   }
 

@@ -2,6 +2,8 @@ package product_catalog_server.actors
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props, RootActorPath, Terminated}
 import akka.cluster.ClusterEvent.{CurrentClusterState, MemberUp}
+import akka.cluster.pubsub.DistributedPubSub
+import akka.cluster.pubsub.DistributedPubSubMediator.Publish
 import akka.cluster.{Cluster, Member, MemberStatus}
 import akka.routing._
 import com.typesafe.config.ConfigFactory
@@ -10,11 +12,12 @@ import shop.actors._
 
 import scala.collection.mutable.ListBuffer
 
-class ProductCatalogManagerActor(val system: ActorSystem, var productCatalog: ProductCatalog) extends Actor with ActorLogging {
+class ProductCatalogManagerActor(val id: String, val system: ActorSystem, var productCatalog: ProductCatalog) extends Actor with ActorLogging {
 
   import ProductCatalogManagerActor._
 
-  val no_routees = 10
+  val mediator = DistributedPubSub(system).mediator
+  val no_routees = 5
   var details: JobDetails = _ // id, number of of finished workers
 
   var router: Router = {
@@ -29,10 +32,7 @@ class ProductCatalogManagerActor(val system: ActorSystem, var productCatalog: Pr
 
   val cluster = Cluster(system)
 
-  // subscribe to cluster changes, MemberUp
-  // re-subscribe when restart
   override def preStart(): Unit = {
-    println("preStart")
     cluster.subscribe(self, classOf[MemberUp])
   }
 
@@ -40,6 +40,7 @@ class ProductCatalogManagerActor(val system: ActorSystem, var productCatalog: Pr
 
   override def receive: PartialFunction[Any, Unit] = {
     case SearchForItems(words) =>
+      mediator ! Publish("stats", id)
       details = JobDetails(0, CatalogSearchResults(List()), sender())
       router.route(ProductCatalogWorkerActor.SearchForItems(words), sender())
 
@@ -67,8 +68,7 @@ class ProductCatalogManagerActor(val system: ActorSystem, var productCatalog: Pr
 
   def register(member: Member): Unit =
     if (member.hasRole("clusterManager")) {
-      println("Registering member")
-      system.actorSelection(RootActorPath(member.address) / "user" / "clusterManager") ! ClusterNodeRegistration
+      system.actorSelection(RootActorPath(member.address) / "user" / "clusterManager") ! ClusterNodeRegistration(id)
     }
 
   def mergeResults(results: CatalogSearchResults, results1: CatalogSearchResults): CatalogSearchResults = {
@@ -87,12 +87,12 @@ object ProductCatalogManagerActor {
   def main(args: Array[String]): Unit = {
     // Override the configuration of the port when specified as program argument
     val port = if (args.isEmpty) "0" else args(0)
+    val id = if (args.length < 2) "0" else args(1)
     val config = ConfigFactory.parseString(s"akka.remote.netty.tcp.port=$port").
       withFallback(ConfigFactory.parseString("akka.cluster.roles = [clusterNode]")).
       withFallback(ConfigFactory.load("cluster"))
 
     val system: ActorSystem = ActorSystem("ClusterSystem", config)
-    system.actorOf(Props(new ProductCatalogManagerActor(system, ProductCatalog.ready)), name = "clusterNode")
-    println("Product Catalog Manager Actor")
+    system.actorOf(Props(new ProductCatalogManagerActor(id, system, ProductCatalog.ready)), name = "clusterNode")
   }
 }

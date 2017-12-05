@@ -4,13 +4,15 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props, Terminated}
 import com.typesafe.config.ConfigFactory
-import product_catalog_server.{ClusterNodeRegistration, NumRoutees, ProductCatalogJobFailed, SearchForItems}
+import product_catalog_server._
 
 import scala.language.postfixOps
 
 class ProductCatalogClusterManagerActor extends Actor {
 
   var clusterNodes = IndexedSeq.empty[ActorRef]
+  var idsMap = Map[ActorRef, String]()
+  var statsActorRef: ActorRef = _
   var jobCounter = 0
 
   def receive = {
@@ -21,18 +23,27 @@ class ProductCatalogClusterManagerActor extends Actor {
       jobCounter += 1
       clusterNodes(jobCounter % clusterNodes.size) forward job
 
-    case NumRoutees =>
-      sender() ! clusterNodes.size
+    case job: GetStats =>
+      statsActorRef forward job
 
-    case ClusterNodeRegistration if !clusterNodes.contains(sender()) =>
+    case ClusterNodeRegistration(id: String) if !clusterNodes.contains(sender()) =>
       context watch sender()
+      idsMap += (sender() -> id)
       clusterNodes = clusterNodes :+ sender()
 
-    case Terminated(a) =>
+    case StatsActorRegistration(id: String) =>
+      context watch sender()
+      idsMap += (sender() -> id)
+      statsActorRef = sender()
+
+    case Terminated(a) if clusterNodes.contains(a) =>
       clusterNodes = clusterNodes.filterNot(_ == a)
+      ProductCatalogManagerActor.main(Seq("0", idsMap.getOrElse(a, default = "0")).toArray)
+
+    case Terminated(a) if statsActorRef == a =>
+      ProductCatalogStatsActor.main(Seq("0", idsMap.getOrElse(a, default = "0")).toArray)
   }
 }
-//#frontend
 
 object ProductCatalogClusterManagerActor {
   def run(args: Array[String]): ActorRef = {

@@ -3,6 +3,7 @@ package product_catalog_server.utils
 import java.net.URI
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import product_catalog_server.actors.ProductCatalogStatsActor.{Stat, Stats}
 import product_catalog_server.{CatalogSearchResults, SearchResults}
 import shop.actors.Item
 import spray.json.{DefaultJsonProtocol, DeserializationException, JsArray, JsNumber, JsString, JsValue, RootJsonFormat}
@@ -24,5 +25,7 @@ object JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   }
 
   implicit val catalogFormat: RootJsonFormat[CatalogSearchResults] = jsonFormat1(CatalogSearchResults)
-  implicit val searchFromat: RootJsonFormat[SearchResults] = jsonFormat1(SearchResults)
+  implicit val searchFormat: RootJsonFormat[SearchResults] = jsonFormat1(SearchResults)
+  implicit val statFormat: RootJsonFormat[Stat] = jsonFormat2(Stat)
+  implicit val statsFormat: RootJsonFormat[Stats] = jsonFormat1(Stats)
 }
