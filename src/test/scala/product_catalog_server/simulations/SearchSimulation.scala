@@ -24,12 +24,16 @@ class SearchSimulation extends io.gatling.core.scenario.Simulation with Simulati
   /**
     * Scenario for simulation.
     */
-  val scn = scenario("Simulation for the customer service").repeat(repeatCount) {
+  val scn = scenario("Simulation for the product catalog").repeat(repeatCount) {
     exec(
-      http(session => "Put a search")
-        .put(searchItemsLink)
+      http(session => "PUT: search")
+        .put(searchItemsLink + "search")
         .header("Content-Type", "application/json")
         .body(randSearchWords)
+        .check(status is 200)
+    ).exec(
+      http(session => "GET: stats")
+        .get(searchItemsLink + "stats")
         .check(status is 200)
     )
   }
