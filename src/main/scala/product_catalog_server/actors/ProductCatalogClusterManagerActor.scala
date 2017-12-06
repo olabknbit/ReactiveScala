@@ -13,6 +13,7 @@ class ProductCatalogClusterManagerActor extends Actor {
   var clusterNodes = IndexedSeq.empty[ActorRef]
   var idsMap = Map[ActorRef, String]()
   var statsActorRef: ActorRef = _
+  var loggingActorRef: ActorRef = _
   var jobCounter = 0
 
   def receive = {
@@ -36,12 +37,20 @@ class ProductCatalogClusterManagerActor extends Actor {
       idsMap += (sender() -> id)
       statsActorRef = sender()
 
+    case LoggingActorRegistration(id: String) =>
+      context watch sender()
+      idsMap += (sender() -> id)
+      loggingActorRef = sender()
+
     case Terminated(a) if clusterNodes.contains(a) =>
       clusterNodes = clusterNodes.filterNot(_ == a)
       ProductCatalogManagerActor.main(Seq("0", idsMap.getOrElse(a, default = "0")).toArray)
 
     case Terminated(a) if statsActorRef == a =>
-      ProductCatalogStatsActor.main(Seq("0", idsMap.getOrElse(a, default = "0")).toArray)
+      ProductCatalogStatsActor.main(Seq("0", idsMap.getOrElse(a, default = "stats")).toArray)
+
+    case Terminated(a) if loggingActorRef == a =>
+      ProductCatalogLoggingActor.main(Seq("0", idsMap.getOrElse(a, default = "logs")).toArray)
   }
 }
 

@@ -25,6 +25,7 @@ object ProductCatalogServer extends App {
   implicit val executionContext = system.dispatcher
   private implicit val timeout: Timeout = 15 seconds
   val clusterManagerRef = ProductCatalogClusterManagerActor.run(Seq("2555").toArray)
+  var id = 1
   val routes =
     pathPrefix("product") {
       path("search") {
@@ -56,7 +57,6 @@ object ProductCatalogServer extends App {
   ProductCatalogLoggingActor.main(Seq("0", "logs").toArray)
   startClusterNodes()
   val bindingFuture = Http().bindAndHandle(routes, "localhost", 8081)
-  var id = 1
 
   def startClusterNodes(): Unit = {
     ProductCatalogManagerActor.main(Seq("0", id.toString).toArray)
